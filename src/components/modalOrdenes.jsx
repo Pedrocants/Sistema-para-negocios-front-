@@ -132,26 +132,34 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
     setSelectedItem(item);
 
   };
+  useEffect(() => {
+    const cargarProvincias = async () => {
+      try {
 
+        const urlProvincias = getProvincias();
+        const dataProv = await obtenerDatos(urlProvincias, 'GET');
+        const prov = dataProv.provincias.map((prov) => prov.nombre);
+        setProvincias(prov);
+      } catch (err) {
+        console.error("Puede que esta api no este disponible: " + err);
+      }
+    }
+    if (provincias == []) {
+      cargarProvincias();
+    }
+  }, [provincias]);
 
   useEffect(() => {
     const cargarProductosYClientes = async () => {
       try {
         const url = mostrarProductos();
         const urlClientes = getClientes();
-        const urlProvincias = getProvincias();
-
         const urlInsumos = getInsumos();
 
         const dataProductos = await obtenerDatos(url, 'GET', token);
         const dataClientes = await obtenerDatos(urlClientes, 'GET', token);
         const dataInsumo = await obtenerDatos(urlInsumos, 'GET', token);
-        const dataProv = await obtenerDatos(urlProvincias, 'GET');
-        const prov = dataProv.provincias.map((prov) => prov.nombre);
 
-
-
-        setProvincias(prov);
         setProductos(dataProductos);
         setClientes(dataClientes);
         setInsumos(dataInsumo);
@@ -170,7 +178,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
   }, [errors])
 
   const handleAgregarDetalle = () => {
-    if (productos.length > 0 || insumos.length > 0) {
+    if (productos?.length > 0 || insumos?.length > 0) {
       const nuevoDetalle = {
         id: Date.now(),
         productos,
