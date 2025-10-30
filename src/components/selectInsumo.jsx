@@ -53,15 +53,15 @@ const SelectInsumo = ({ insumos, addInsumoItem, denomUnidad, denominacionProduct
         <>
             <div>
 
-                <Label>Insumo:</Label>
-                <Select onChange={handlerSelect}>
+                <Label htmlFor="ins">Insumo:</Label>
+                <Select id="ins" onChange={handlerSelect}>
                     <option>Seleccionar uno...</option>
                     {insumos.map((insumo) => (
                         <option key={insumo.idInsumo} value={insumo.idInsumo}>{insumo.denominacion}</option>
                     ))}
                 </Select>
                 <Label htmlFor="cantidad">Cantidad:</Label>
-                <Input type="number" name="cantidad" placeholder="0" onChange={handlerInput} step="0.01" min="0" max="100000" onWheel={(e) => e.target.blur()} />
+                <Input type="number" id="cantidad" placeholder="0" onChange={handlerInput} step="0.01" min="0" max="100000" onWheel={(e) => e.target.blur()} />
                 <h3><span>{texto}</span></h3>
                 <Button type="button" disabled={bottonEstado} onClick={addItem}> {bottonEstado == false ? "Añadir" : "Listo..."}</Button>
             </div>

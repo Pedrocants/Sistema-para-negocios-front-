@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { obtenerDatos } from '../helper/traeDatos';
 import { mostrarUnaOrden, eliminarUnaOrden, updateOrden } from '../helper/url';
 import { Button, ButtonHiellow } from './ModalStyles';
@@ -7,16 +7,34 @@ import { Button, ButtonHiellow } from './ModalStyles';
 const OrderDetail = ({ token }) => {
     const { id } = useParams();
     const [orden, setOrden] = useState(null);
-    const navigate = useNavigate();
     const [estado, setEstado] = useState(false);
+    const isFirstRender = useRef(true);
 
     useEffect(() => {
-        async function fetchOrden() {
-            const datos = await obtenerDatos(mostrarUnaOrden(id), 'GET', token);
-            setOrden(datos);
-        }
         fetchOrden();
-    }, [id, estado]);
+    }, [id]);
+
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        async function update() {
+            orden.idOrden = id;
+            orden.pagado = orden.total;
+            const urlUpdate = updateOrden();
+            const data = obtenerDatos(urlUpdate, 'PUT', token, orden);
+            if (data) {
+                fetchOrden();
+            }
+        }
+        update();
+    }, [estado]);
+
+    async function fetchOrden() {
+        const datos = await obtenerDatos(mostrarUnaOrden(id), 'GET', token);
+        setOrden(datos);
+    }
 
     if (!orden) return <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando detalle...</div>;
 
@@ -37,16 +55,6 @@ const OrderDetail = ({ token }) => {
             window.location.href = '/';
         }
     }
-    const handlerUpdate = async () => {
-        orden.idOrden = id;
-        orden.pagado = orden.total;
-        const urlUpdate = updateOrden();
-        const data = obtenerDatos(urlUpdate, 'PUT', token, orden);
-        if (data) {
-            setEstado(!estado);
-            navigate(`/ordenes/${id}`);
-        }
-    }
 
     return (
         <div style={{
@@ -65,7 +73,7 @@ const OrderDetail = ({ token }) => {
                 <p><strong>Tipo de Pago:</strong> {orden.tipoPago}</p>
                 <p><strong>Estado:</strong> {orden.estado}</p>
                 {orden.estado == 'parcial_pendiente' && orden.tipoOrden != 'AGREGACION_DE_STOCK' && orden.tipoOrden != 'DEVOLUCION_O_ELIMINACION_DE_STOCK' && (
-                    <ButtonHiellow onClick={handlerUpdate}>Actualizar a pagado</ButtonHiellow>
+                    <ButtonHiellow onClick={() => setEstado(!estado)}>Actualizar a pagado ${(orden.total - orden.pagado).toLocaleString('es-AR')}</ButtonHiellow>
                 )}
                 <p><strong>Subtotal:</strong> ${orden.subTotal.toLocaleString('es-AR')}</p>
                 <p><strong>Total:</strong> ${orden.total.toLocaleString('es-AR')}</p>
@@ -144,12 +152,12 @@ const OrderDetail = ({ token }) => {
                             <tbody>
                                 {insumos.map((item, index) => (
                                     <tr key={index} style={index % 2 === 0 ? rowEven : rowOdd}>
-                                        <td style={cellStyle}>{item.insumo.denominacion}</td>
-                                        <td style={cellStyle}>{item.insumo.esParaElaborar ? 'Sí' : 'No'}</td>
-                                        <td style={cellStyle}>{item.cantidadInsumo}</td>
+                                        <td style={cellStyle}>{item?.insumo?.denominacion}</td>
+                                        <td style={cellStyle}>{item?.insumo?.esParaElaborar ? 'Sí' : 'No'}</td>
+                                        <td style={cellStyle}>{item?.cantidadInsumo}</td>
                                         <td style={cellStyle}>${item.insumo.precio.toLocaleString('es-AR')}</td>
-                                        <td style={cellStyle}>{item.descuentosPorProducto}</td>
-                                        <td style={cellStyle}>{item.observaciones}</td>
+                                        <td style={cellStyle}>${(!item.productos) ? item?.descuentosPorProducto.toLocaleString('es-AR') : 0}</td>
+                                        <td style={cellStyle}>{(!item.productos) ? item?.observaciones : 'Sin observaciones'}</td>
                                         <td style={cellStyle}>{(item.insumo.marca) ? item.insumo.marca.nombre : 'sin marca'}</td>
                                     </tr>
                                 ))}

@@ -103,7 +103,7 @@ const Label = styled.label`
     color: #bbb;
     font-size: 14px;
   `;
-export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, onActualizarSumaTotal, setOrdenDetalle, calcularDescuentos, token }) => {
+export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, onActualizarSumaTotal, setOrdenDetalle, calcularDescuentos }) => {
 
   const [estadoDeBoton, setEstado] = useState(true);
   const [selectedItemProducto, setSelectedItemProductos] = useState(null);
@@ -123,6 +123,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
   const [descuentos, setDescuentos] = useState(0);
   const [radioProductos, setRadio] = useState('p');
   const [numero, setNumero] = useState(0);
+  const [costo, setSumaCosto] = useState(0);
 
   const productosOptions = productos?.map((item) => ({
     value: item.idProductoManufacturado,
@@ -131,7 +132,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
 
   const insumosOptions = insumos?.map((item) => ({
     value: item.idInsumo,
-    label: item.denominacion + "  $" + item.precio.toLocaleString('es-AR')
+    label: item.denominacion + "  $" + item.precio.toLocaleString('es-AR') + " -- $" + item?.costo.toLocaleString('es-AR')
   }));
 
   const agregarDetalles = (ordenDetalle) => {
@@ -195,6 +196,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
     };
     agregarCantidadProducto(cantidad);
   };
+
   const handleInputInsumo = (e) => {
     const cantidad = e.target.value;
     if (cantidad > selectedItemInsumo.detalle.stockActual) {
@@ -209,12 +211,15 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
       }));
     }
     let precio = selectedItemInsumo.precio;
+    let scosto = selectedItemInsumo.costo;
     let suma = (precio * cantidad);
+    let sumaCosto = (scosto != null) ? (scosto * cantidad) : 0;
     setSumaTotalInsumos(suma);
     const agregarCantidadInsumo = (cantidad) => {
       setCantidadInsumo(cantidad)
     }
     agregarCantidadInsumo(cantidad);
+    setSumaCosto(sumaCosto);
   };
 
   const agregarObservaciones = (observaciones) => {
@@ -225,12 +230,14 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
   }
   function sumarTodo() {
     let nuevaSuma;
+    let nuevaSumaCostos = 0;
     switch (radioProductos) {
       case 'p':
         nuevaSuma = sumaTotalProductos;
         break;
       case 'i':
         nuevaSuma = sumaTotalInsumos;
+        nuevaSumaCostos = costo;
         break;
       case 'p&i':
         nuevaSuma = sumaTotalProductos + sumaTotalInsumos;
@@ -238,7 +245,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
 
     }
     setSuma(nuevaSuma);
-    onActualizarSumaTotal(nuevaSuma);
+    onActualizarSumaTotal(nuevaSuma, nuevaSumaCostos);
 
     const ordenDetalle = {
       'productos': (selectedItemProducto) ? { idProductoManufacturado: selectedItemProducto.idProductoManufacturado } : null,
@@ -297,15 +304,15 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
                   <Label htmlFor="productos">Productos:</Label>
                   <StyledSelect
                     classNamePrefix="react-select"
-                    name="productos"
+                    name="productos" id="productos"
                     options={productosOptions}
                     placeholder="Seleccionar uno..."
                     isSearchable
                     onChange={(selectedOption) => handleSelectChange(selectedOption?.value)}
                   />
                   <div>
-                    <Label>Cantidad de producto manufacturado:</Label>
-                    <Number type='number' step="0.01" onWheel={(e) => e.target.blur()} onChange={handleInput} name="cantidad" placeholder="0.00" />
+                    <Label htmlFor="cantidadP">Cantidad de producto manufacturado:</Label>
+                    <Number name="cantidadP" id="cantidadP" type='number' step="0.01" onWheel={(e) => e.target.blur()} onChange={handleInput} placeholder="0.00" />
                     {
                       (labelCantidad.labelProducto == true) && (
                         <h5 style={{
@@ -322,7 +329,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
                 <>
                   <Label htmlFor="insumos">Otros productos:</Label>
                   <StyledSelect
-                    name="insumos"
+                    name="insumos" id="insumos"
                     classNamePrefix="react-select"
                     options={insumosOptions}
                     placeholder="Seleccionar uno..."
@@ -332,7 +339,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
 
                   <div>
                     <Label htmlFor="campoInsumo">{'Cantidad de otros productos (no manufacturados)'}</Label>
-                    <Number type='number' step="0.01" onWheel={(e) => e.target.blur()} name="campoInsumo" className="campoInsumo" onChange={handleInputInsumo} />
+                    <Number type='number' step="0.01" onWheel={(e) => e.target.blur()} name="campoInsumo" id="campoInsumo" className="campoInsumo" onChange={handleInputInsumo} />
                     {
                       (labelCantidad.labelInsumo == true) && (
                         <h5 style={{
@@ -374,10 +381,10 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
       {
         masDetalle == true && (
           <>
-            <Label>Descuentos por producto:</Label>
-            <Number type='number' onChange={agregarDescuentos} />
-            <Label>Observaciones: </Label>
-            <Input type='text' onChange={agregarObservaciones} />
+            <Label htmlFor="descuentos">Descuentos por producto:</Label>
+            <Number name="descuentos" id="descuentos" type='number' onChange={agregarDescuentos} />
+            <Label htmlFor="obs">Observaciones: </Label>
+            <Input name="obs" id="obs" type='text' onChange={agregarObservaciones} />
 
           </>
         )
@@ -387,7 +394,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
     </CajaProducto >
   ) : (
     <>
-      <h3>Detalle {numero}: ${sumaTotal.toLocaleString("es-AR")}</h3>
+      <h3>Detalle {numero}: ${sumaTotal.toLocaleString("es-AR")} --- ${costo.toLocaleString('es-AR')}</h3>
     </>
   )
 };

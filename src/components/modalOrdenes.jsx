@@ -111,6 +111,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
 
   const [ordenTipoForm, setOrdenTipoForm] = useState('caja');
   const [sumaTotal, setSumaTotal] = useState(0);
+  const [sumaCostos, setSumaCostos] = useState(0);
   const [productos, setProductos] = useState(null);
   const [insumos, setInsumos] = useState([]);
   const [clientes, setClientes] = useState([]);
@@ -184,6 +185,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
         productos,
         insumos,
         suma: 0,
+        sumaCostos: 0
       };
       setDetalles([...detalles, nuevoDetalle]);
     } else {
@@ -196,7 +198,12 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
       const ultimoDetalle = detalles[detalles.length - 1];
       const ultimaOrdenDetalle = ordenDetalle[detalles.length - 1];
       const descuento = (ultimaOrdenDetalle && ultimaOrdenDetalle.descuentosPorProducto) ? parseFloat(ultimaOrdenDetalle.descuentosPorProducto) : 0;
+
       const nuevaSuma = parseFloat(ultimoDetalle.suma) - descuento;
+
+      const ultSumCosto = (ultimoDetalle.sumaCostos) ? ultimoDetalle.sumaCostos : 0;
+
+      setSumaCostos((prevSumCosto) => (prevSumCosto - ultSumCosto).toFixed(2));
 
       setSumaTotal((prevSumaTotal) => (prevSumaTotal - ultimoDetalle.suma).toFixed(2));
       setTotal((prevTotal) => prevTotal - nuevaSuma);
@@ -207,19 +214,21 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
     }
   };
 
-  const actualizarSumaDetalle = (id, nuevaSuma) => {
+  const actualizarSumaDetalle = (id, nuevaSuma, sumaCostos) => {
     setDetalles(
       (prevDetalles) => {
         const nuevosDetalles = prevDetalles.map((detalle) =>
           detalle.id === id ?
-            { ...detalle, suma: nuevaSuma } :
+            { ...detalle, suma: nuevaSuma, sumaCostos: sumaCostos } :
             detalle
         );
         const nuevaSumaTotal = nuevosDetalles.reduce(
           (total, detalle) => total + detalle.suma,
           0
         );
+        const nuevaSumaCostos = nuevosDetalles?.reduce((sumaCostos, detalle) => sumaCostos + detalle.sumaCostos, 0);
 
+        setSumaCostos(nuevaSumaCostos);
         setSumaTotal(nuevaSumaTotal);
 
         return nuevosDetalles;
@@ -311,8 +320,8 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
       detalle: ordenDetalle,
       fecha_entrega,
       subTotal: sumaTotal,
-      total: total,
-      pagado: pagado || (esCaja ? total : 0),
+      total: (tipo != 'COMPRA') ? total : sumaCostos,
+      pagado: pagado || (esCaja ? (tipo != 'COMPRA') ? total : sumaCostos : 0),
       tipoOrden: tipo,
       tipoPago: tipoPago
     });
@@ -339,6 +348,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
         setPagado(0);
         setTotal(0);
         setTipo(null);
+        setSumaCostos(0);
         setDetalles([]);
         setOrdenDetalle([]);
         toggleModal();
@@ -428,7 +438,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
                 <>
                   <Label htmlFor='selectCliente'>Cliente</Label>
 
-                  <Select name='selectCliente' onChange={handleSelectChange}>
+                  <Select name='selectCliente' id='selectCliente' onChange={handleSelectChange}>
                     <option>Seleccione uno...</option>
                     {clientes.map((cliente) => (
                       <option key={cliente.idCliente} value={cliente.idCliente}>
@@ -442,12 +452,12 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
 
                   <div>
                     <Label htmlFor='nombre'>Nombre:</Label>
-                    <Input type="text" name="nombre" maxLength="25" />
+                    <Input type="text" name="nombre" id='selectCliente' maxLength="25" />
                     <Label htmlFor='apellido'>Apellido:</Label>
-                    <Input type="text" name="apellido" maxLength="25" />
+                    <Input type="text" name="apellido" id='apellido' maxLength="25" />
 
                     <Label htmlFor='tipoCliente'>Tipo de cliente:</Label>
-                    <Select name='tipoCliente' onChange={(e) => setTipoCliente(e.target.value)}>
+                    <Select name='tipoCliente' id='tipoCliente' onChange={(e) => setTipoCliente(e.target.value)}>
                       <option>Seleccionar uno...</option>
                       <option value="Mayorista">Mayorista</option>
                       <option value="Minorista">Minorista</option>
@@ -457,12 +467,12 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
                     </Select>
 
                     <Label htmlFor='calle'>Domicilio:</Label>
-                    <Input type="text" name="calle" maxLength="125" />
+                    <Input type="text" name="calle" id="calle" maxLength="125" />
                     <Label htmlFor='provincia'>Provincia:</Label>
                     {
                       provincias.length > 0 ? (
                         <div>
-                          <Select onChange={(e) => e.target.value} name="provincia">
+                          <Select onChange={(e) => e.target.value} name="provincia" id="provincia">
                             <option>Seleccionar uno..</option>
                             {provincias.map((p, i) => (
                               <option key={i} value={p}>{p}</option>
@@ -471,7 +481,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
                         </div>
                       ) : (
                         <div>
-                          <Input type="text" name="provincia" maxLength="25" />
+                          <Input type="text" name="provincia" id="provincia" maxLength="25" />
 
                         </div>
 
@@ -503,7 +513,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
                 contOrdenesDetalle={ordenDetalle.length}
                 productos={detalle.productos}
                 insumos={detalle.insumos}
-                onActualizarSumaTotal={(nuevaSuma) => actualizarSumaDetalle(detalle.id, nuevaSuma)}
+                onActualizarSumaTotal={(nuevaSuma, nuevaSumaCostos) => actualizarSumaDetalle(detalle.id, nuevaSuma, nuevaSumaCostos)}
                 setOrdenDetalle={setOrdenDetalle}
                 calcularDescuentos={calcularDescuentos}
                 token={token}
@@ -521,8 +531,8 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
 
             )
           }
-          <Label>Tipo: </Label>
-          <Select onChange={(event) => (setTipo(event.target.value))}>
+          <Label htmlFor='tipoOrden'>Tipo: </Label>
+          <Select name='tipoOrden' id='tipoOrden' onChange={(event) => (setTipo(event.target.value))}>
             <option value={null}>Seleccione uno...</option>
             <option value={'PAGO'}>PAGO</option>
             <option value={'COMPRA'}>COMPRA</option>
@@ -552,8 +562,17 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
                   <option value={'OTROS'}>OTROS (cheques, pagaré, cuenta corriente, etc.)</option>
                 </Select>
 
-                <h5>subTotal: <span>${sumaTotal}</span></h5>
-                <h3>Total Orden: <span>${total.toLocaleString('es-AR')}</span></h3>
+                <h5>subTotal: <span>${sumaTotal.toLocaleString('es-AR')}</span></h5>
+                {
+                  tipo == 'COMPRA' ? (
+                    <>
+                      <h3>Total Orden {'(COMPRA)'}: <span>${sumaCostos.toLocaleString('es-AR')}</span></h3>
+                    </>
+                  ) : (
+
+                    <h3>Total Orden {'(VENTA)'}: <span>${total.toLocaleString('es-AR')}</span></h3>
+                  )
+                }
               </>
             )
           }

@@ -19,6 +19,7 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
     const [denominacion, setDenominacion] = useState(null);
     const [descripcion, setDescripcion] = useState(null);
     const [precio, setPrecio] = useState(0);
+    const [costo, setCosto] = useState(0);
     const [stockActual, setStockActual] = useState(0);
     const [stockMinimo, setStockMinimo] = useState(0);
     const [unidad, setUnidad] = useState(null);
@@ -161,7 +162,8 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
                 } : {
                     idMarca: null,
                     nombre: marca
-                } : null
+                } : null,
+                costo: costo
             }
             dataRespuesta = enviar(esManufacturado, ProductoInsumo);
         }
@@ -197,7 +199,8 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
         setDenominacionUnidad("");
         setCompInsumo([]);
         setItemInsumo([]);
-        setOptionMarca(null)
+        setOptionMarca(null);
+        setCosto(0);
     };
 
     return (
@@ -222,11 +225,11 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
                 <Form>
 
                     <Label htmlFor="denominacion">Denominacion:</Label>
-                    <Input type="text" name="denominacion" required onChange={(e) => (setDenominacion(e.target.value))} />
+                    <Input type="text" id="denominacion" required onChange={(e) => (setDenominacion(e.target.value))} />
                     {unidades && (
                         <>
                             <Label htmlFor="unidad">Unidad de medida:</Label>
-                            <Select name="unidad" onChange={handlerSelectUnidad}>
+                            <Select id="unidad" onChange={handlerSelectUnidad}>
                                 <option>Seleccionar uno...</option>
                                 {unidades.map((unidad) => (
                                     <option key={unidad.idUnidadMedida} value={unidad.idUnidadMedida}>{unidad.denominacion}</option>
@@ -235,8 +238,8 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
                         </>
                     )}
                     <h3>Detalles del producto:</h3>
-                    <Label htmlFor="elaborar">¿Es un producto insumo?</Label>
-                    <Select name="elaborar" onChange={handleSelectChange}>
+                    <Label htmlFor="selectEsInsumo">¿Es un producto insumo?</Label>
+                    <Select id="selectEsInsumo" onChange={handleSelectChange}>
                         <option value={'No'}>No</option>
                         <option value={'Si'}>Si</option>
                     </Select>
@@ -247,14 +250,14 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
                                 <Button type="button" onClick={addInsumo}>Agregar insumo</Button>
                                 {compInsumo.map((comp) => (
                                     <SelectInsumo key={comp.id}
-                                        insumos={insumos} addInsumoItem={addInsumoItem} denomUnidad={denominacionUnidad} denominacionProducto={denominacion}/>
+                                        insumos={insumos} addInsumoItem={addInsumoItem} denomUnidad={denominacionUnidad} denominacionProducto={denominacion} />
                                 ))}
                             </>
                         ) : (
                             <>
                                 <h3>Producto/insumo</h3>
-                                <Label>¿es para elaborar?</Label>
-                                <Select onChange={handleSelectChangeElaborar}>
+                                <Label htmlFor="elaborar">¿es para elaborar?</Label>
+                                <Select id="elaborar" onChange={handleSelectChangeElaborar}>
                                     <option key={false} value={false} defaultValue={false}>No</option>
                                     <option key={true} value={true}>Si</option>
                                 </Select>
@@ -264,7 +267,7 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
                                     optionMarca == 'Nueva' && (
                                         <div>
                                             <Label htmlFor="marca">{'Nombre'}</Label>
-                                            <Input type="text" name="marca" required onChange={(e) => (setMarca(e.target.value))} />
+                                            <Input type="text" id="marca" required onChange={(e) => (setMarca(e.target.value))} />
                                         </div>
                                     )
                                 }
@@ -284,19 +287,19 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
                         )
                     }
                     <Label htmlFor="stockMin">Stock minimo:</Label>
-                    <Input type="number" name="stockMin" onWheel={(e) => e.target.blur()} onChange={(e) => (setStockMinimo(e.target.value))} step="0.01" min="0" max="100000" />
+                    <Input type="number" id="stockMin" onWheel={(e) => e.target.blur()} onChange={(e) => (setStockMinimo(e.target.value))} step="0.01" min="0" max="100000" />
                     <Label htmlFor="stock">Stock actual:</Label>
-                    <Input type="number" name="stock" onWheel={(e) => e.target.blur()} onChange={handlerStock} step="0.01" min="0" max="100000" />
+                    <Input type="number" name="stock" id="stock" onWheel={(e) => e.target.blur()} onChange={handlerStock} step="0.01" min="0" max="100000" />
                     {
                         selected == 'No' && (
                             <>
 
                                 <Label htmlFor="desc">Descripcion:</Label>
-                                <Input type="text" name="desc" onChange={(e) => (setDescripcion(e.target.value))} />
+                                <Input type="text" name="desc" id="desc" onChange={(e) => (setDescripcion(e.target.value))} />
 
                                 <Label htmlFor="time">Tiempo estimado: {"(Opcional)"} </Label>
                                 <Input
-                                    type="time" name="time"
+                                    type="time" name="time" id="time"
                                     onChange={(e) => setTiempoEstimado(e.target.value)}
                                 />
 
@@ -305,7 +308,15 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
                         )
                     }
                     <Label htmlFor="precio">Precio:</Label>
-                    <Input type="number" name="precio" onWheel={(e) => e.target.blur()} onChange={(e) => (setPrecio(parseFloat(e.target.value)))} step="0.01" min="0" max="100000" />
+                    <Input type="number" name="precio" id="precio" onWheel={(e) => e.target.blur()} onChange={(e) => (setPrecio(parseFloat(e.target.value)))} step="0.01" min="0" max="100000" />
+                    {
+                        selected == 'Si' && (
+                            <>
+                                <Label htmlFor="costo">Costo:</Label>
+                                <Input type="number" name="costo" id="costo" onWheel={(e) => e.target.blur()} onChange={(e) => (setCosto(parseFloat(e.target.value)))} step="0.01" min="0" max="100000" />
+                            </>
+                        )
+                    }
                     <Button type="button" onClick={cargarProducto}>Aceptar</Button>
                     <Button type="button" onClick={toggleModal}>Cancelar</Button>
                 </Form>
