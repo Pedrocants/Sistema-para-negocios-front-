@@ -121,13 +121,13 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
   const [cantidadInsumo, setCantidadInsumo] = useState(0);
   const [observaciones, setObservaciones] = useState("");
   const [descuentos, setDescuentos] = useState(0);
-  const [radioProductos, setRadio] = useState('p');
+  const [radioProductos, setRadio] = useState('');
   const [numero, setNumero] = useState(0);
   const [costo, setSumaCosto] = useState(0);
 
   const productosOptions = productos?.map((item) => ({
     value: item.idProductoManufacturado,
-    label: item.denominacion + "  $" + item.precio.toLocaleString('es-AR')
+    label: item.denominacion + " por " + item.unidad?.denominacion + "  $" + item.precio.toLocaleString('es-AR')
   }))
 
   const insumosOptions = insumos?.map((item) => ({
@@ -199,7 +199,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
 
   const handleInputInsumo = (e) => {
     const cantidad = e.target.value;
-    if (cantidad > selectedItemInsumo.detalle.stockActual) {
+    if (cantidad > selectedItemInsumo?.detalle.stockActual) {
       setLabelCantidad(prev => ({
         ...prev,
         labelInsumo: true
@@ -266,35 +266,47 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
         (insumosOptions.length > 0 || productosOptions.length > 0) && (
           <>
             <RadioGroup>
-              <RadioOption>
-                <RadioInput
-                  type="radio"
-                  name="p"
-                  id="p"
-                  checked={radioProductos == 'p'}
-                  onChange={() => setRadio('p')} />
-                <RadioLabel htmlFor="p">Productos manufacturados</RadioLabel>
-              </RadioOption>
+              {
+                productos != null && productos.length > 0 && (
+                  <RadioOption>
+                    <RadioInput
+                      type="radio"
+                      name="p"
+                      id="p"
+                      checked={radioProductos == 'p'}
+                      onChange={() => setRadio('p')} />
+                    <RadioLabel htmlFor="p">Productos manufacturados</RadioLabel>
+                  </RadioOption>
+                )
+              }
 
-              <RadioOption>
-                <RadioInput
-                  type="radio"
-                  name="i"
-                  id="i"
-                  checked={radioProductos == 'i'}
-                  onChange={() => setRadio('i')} />
-                <RadioLabel htmlFor="i">Otros productos</RadioLabel>
-              </RadioOption>
+              {
+                insumos != null && insumos.length > 0 && (
+                  <RadioOption>
+                    <RadioInput
+                      type="radio"
+                      name="i"
+                      id="i"
+                      checked={radioProductos == 'i'}
+                      onChange={() => setRadio('i')} />
+                    <RadioLabel htmlFor="i">Otros productos</RadioLabel>
+                  </RadioOption>
+                )
+              }
 
-              <RadioOption>
-                <RadioInput
-                  type="radio"
-                  name="p&i"
-                  id="p&i"
-                  checked={radioProductos == 'p&i'}
-                  onChange={() => setRadio('p&i')} />
-                <RadioLabel htmlFor="p&i">Todos</RadioLabel>
-              </RadioOption>
+              {
+                productos != null && productos.length > 0 && insumos != null && insumos.length > 0 && (
+                  <RadioOption>
+                    <RadioInput
+                      type="radio"
+                      name="p&i"
+                      id="p&i"
+                      checked={radioProductos == 'p&i'}
+                      onChange={() => setRadio('p&i')} />
+                    <RadioLabel htmlFor="p&i">Todos</RadioLabel>
+                  </RadioOption>
+                )
+              }
 
             </RadioGroup>
 

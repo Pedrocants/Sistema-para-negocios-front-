@@ -70,27 +70,39 @@ const OrderDetail = ({ token }) => {
             <div style={{ marginBottom: '1rem' }}>
                 <p><strong>ID Orden:</strong> #{orden.idOrden}</p>
                 <p><strong>Tipo Orden:</strong> {orden.tipoOrden}</p>
-                <p><strong>Tipo de Pago:</strong> {orden.tipoPago}</p>
-                <p><strong>Estado:</strong> {orden.estado}</p>
+                {
+                    orden.tipoOrden != 'AGREGACION_DE_STOCK' && orden.tipoOrden != 'DEVOLUCION_O_ELIMINACION_DE_STOCK' && (
+                        <>
+                            <p><strong>Tipo de Pago:</strong> {orden.tipoPago}</p>
+                            <p><strong>Estado:</strong> {orden.estado}</p>
+                            <p><strong>Pagado:</strong> ${orden.pagado.toLocaleString('es-AR')}</p>
+                            <p><strong>Subtotal:</strong> ${orden.subTotal.toLocaleString('es-AR')}</p>
+                            <p><strong>Total:</strong> ${orden.total.toLocaleString('es-AR')}</p>
+                        </>
+                    )
+                }
                 {orden.estado == 'parcial_pendiente' && orden.tipoOrden != 'AGREGACION_DE_STOCK' && orden.tipoOrden != 'DEVOLUCION_O_ELIMINACION_DE_STOCK' && (
                     <ButtonHiellow onClick={() => setEstado(!estado)}>Actualizar a pagado ${(orden.total - orden.pagado).toLocaleString('es-AR')}</ButtonHiellow>
                 )}
-                <p><strong>Subtotal:</strong> ${orden.subTotal.toLocaleString('es-AR')}</p>
-                <p><strong>Total:</strong> ${orden.total.toLocaleString('es-AR')}</p>
-                <p><strong>Pagado:</strong> ${orden.pagado.toLocaleString('es-AR')}</p>
             </div>
+            {
+                orden.tipoOrden != 'AGREGACION_DE_STOCK' && orden.tipoOrden != 'DEVOLUCION_O_ELIMINACION_DE_STOCK' && (
+                    <>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <h3>Contacto</h3>
+                            <p><strong>Teléfono:</strong> {orden.contacto != null ? orden.contacto.telefono : 'Sin contacto.'}</p>
+                            <p><strong>Email:</strong> {orden.contacto != null ? orden.contacto.email : 'Sin email'}</p>
+                        </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-                <h3>Contacto</h3>
-                <p><strong>Teléfono:</strong> {orden.contacto != null ? orden.contacto.telefono : 'Sin contacto.'}</p>
-                <p><strong>Email:</strong> {orden.contacto != null ? orden.contacto.email : 'Sin email'}</p>
-            </div>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <h3>Domicilio</h3>
+                            <p><strong>Dirección:</strong> {orden.domicilio ? orden.domicilio.direccion : 'Sin domicilio'}</p>
+                            <p><strong>Provincia:</strong> {orden.domicilio ? orden.domicilio.provincia : 'Ninguna'}</p>
+                        </div>
+                    </>
+                )
+            }
 
-            <div style={{ marginBottom: '1rem' }}>
-                <h3>Domicilio</h3>
-                <p><strong>Dirección:</strong> {orden.domicilio ? orden.domicilio.direccion : 'Sin domicilio'}</p>
-                <p><strong>Provincia:</strong> {orden.domicilio ? orden.domicilio.provincia : 'Ninguna'}</p>
-            </div>
 
             <div style={{ marginBottom: '1rem', color: '#0066cc' }}>
                 {fechasIguales ? (
