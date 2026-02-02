@@ -132,7 +132,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
 
   const insumosOptions = insumos?.map((item) => ({
     value: item.idInsumo,
-    label: item.denominacion + "  $" + item.precio.toLocaleString('es-AR') + " -- $" + item?.costo.toLocaleString('es-AR')
+    label: item.denominacion + " por " + item.unidadMedida?.denominacion + "  $" + item.precio.toLocaleString('es-AR') + " -- $" + item?.costo.toLocaleString('es-AR')
   }));
 
   const agregarDetalles = (ordenDetalle) => {
@@ -316,7 +316,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
                   <Label htmlFor="productos">Productos:</Label>
                   <StyledSelect
                     classNamePrefix="react-select"
-                    name="productos" id="productos"
+                    name="productos" id="productos" autoFocus
                     options={productosOptions}
                     placeholder="Seleccionar uno..."
                     isSearchable
@@ -324,7 +324,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
                   />
                   <div>
                     <Label htmlFor="cantidadP">Cantidad de producto manufacturado:</Label>
-                    <Number name="cantidadP" id="cantidadP" type='number' step="0.01" onWheel={(e) => e.target.blur()} onChange={handleInput} placeholder="0.00" />
+                    <Number name="cantidadP" id="cantidadP" type='number' step="0.01" onWheel={(e) => e.target.blur()} onChange={handleInput} placeholder="0.00" disabled={selectedItemProducto === null} />
                     {
                       (labelCantidad.labelProducto == true) && (
                         <h5 style={{
@@ -342,7 +342,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
                   <Label htmlFor="insumos">Otros productos:</Label>
                   <StyledSelect
                     name="insumos" id="insumos"
-                    classNamePrefix="react-select"
+                    classNamePrefix="react-select" autoFocus
                     options={insumosOptions}
                     placeholder="Seleccionar uno..."
                     isSearchable
@@ -351,7 +351,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
 
                   <div>
                     <Label htmlFor="campoInsumo">{'Cantidad de otros productos (no manufacturados)'}</Label>
-                    <Number type='number' step="0.01" onWheel={(e) => e.target.blur()} name="campoInsumo" id="campoInsumo" className="campoInsumo" onChange={handleInputInsumo} />
+                    <Number type='number' step="0.01" onWheel={(e) => e.target.blur()} name="campoInsumo" id="campoInsumo" className="campoInsumo" onChange={handleInputInsumo} placeholder="0.00" disabled={selectedItemInsumo === null} />
                     {
                       (labelCantidad.labelInsumo == true) && (
                         <h5 style={{

@@ -96,8 +96,8 @@ const Navbar = ({ userId, token, updateStatus }) => {
     <NavbarContainer>
       <NavLinks>
         <NavbarItem to="/">Volver</NavbarItem>
-        <NavbarItem to="/productos">Productos</NavbarItem>
-        <NavbarItem to="/insumos">Insumos</NavbarItem>
+        <NavbarItem to="/productos">Manufacturados</NavbarItem>
+        <NavbarItem to="/insumos">Productos</NavbarItem>
         <NavbarItem to="/ordenes">Órdenes</NavbarItem>
         <Button onClick={toggleModalReport}>Generar reportes</Button>
       </NavLinks>

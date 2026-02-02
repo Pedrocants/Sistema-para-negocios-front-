@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { obtenerDatos } from '../helper/traeDatos';
 import { mostrarUnaOrden, eliminarUnaOrden, updateOrden } from '../helper/url';
 import { Button, ButtonHiellow } from './ModalStyles';
+import { generarPDF, FacturaPDF } from './facturaDetalle';
 
 const OrderDetail = ({ token }) => {
     const { id } = useParams();
@@ -63,122 +64,146 @@ const OrderDetail = ({ token }) => {
             padding: '2rem',
             fontFamily: 'Arial, sans-serif'
         }}>
-            <h1 style={{ color: 'red', textAlign: 'center' }}>
-                {orden.cliente != null ? orden.cliente.nombre + " " + orden.cliente.apellido : "Cliente local (caja)"}
-            </h1>
+            <div className="no-print">
+                {orden.tipoOrden === 'VENTA' && (
+                    <>
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: "-9999px",
+                                left: "-9999px"
+                            }}
+                        >
+                            <FacturaPDF orden={orden} />
+                        </div>
+                        <Button style={{ margin: '15px' }} onClick={() => generarPDF(orden)}>
+                            Generar factura
+                        </Button>
+                    </>
+                )}
 
-            <div style={{ marginBottom: '1rem' }}>
-                <p><strong>ID Orden:</strong> #{orden.idOrden}</p>
-                <p><strong>Tipo Orden:</strong> {orden.tipoOrden}</p>
+                <Button onClick={handlerEliminar}>
+                    Eliminar orden
+                </Button>
+            </div>
+            <div id="detalle">
+
+                <h1 style={{ color: 'red', textAlign: 'center' }}>
+                    {orden.cliente != null ? orden.cliente.nombre + " " + orden.cliente.apellido : "Cliente local (caja)"}
+                </h1>
+
+                <div style={{ marginBottom: '1rem' }}>
+                    <p><strong>ID Orden:</strong> #{orden.idOrden}</p>
+                    <p><strong>Tipo Orden:</strong> {orden.tipoOrden}</p>
+                    {
+                        orden.tipoOrden != 'AGREGACION_DE_STOCK' && orden.tipoOrden != 'DEVOLUCION_O_ELIMINACION_DE_STOCK' && (
+                            <>
+                                <p><strong>Tipo de Pago:</strong> {orden.tipoPago}</p>
+                                <p><strong>Estado:</strong> {orden.estado}</p>
+                                <p><strong>Pagado:</strong> ${orden.pagado.toLocaleString('es-AR')}</p>
+                                <p><strong>Subtotal:</strong> ${orden.subTotal.toLocaleString('es-AR')}</p>
+                                <p><strong>Total:</strong> ${orden.total.toLocaleString('es-AR')}</p>
+                            </>
+                        )
+                    }
+                    {orden.estado == 'parcial_pendiente' && orden.tipoOrden != 'AGREGACION_DE_STOCK' && orden.tipoOrden != 'DEVOLUCION_O_ELIMINACION_DE_STOCK' && (
+                        <ButtonHiellow onClick={() => setEstado(!estado)}>Actualizar a pagado ${(orden.total - orden.pagado).toLocaleString('es-AR')}</ButtonHiellow>
+                    )}
+                </div>
                 {
                     orden.tipoOrden != 'AGREGACION_DE_STOCK' && orden.tipoOrden != 'DEVOLUCION_O_ELIMINACION_DE_STOCK' && (
                         <>
-                            <p><strong>Tipo de Pago:</strong> {orden.tipoPago}</p>
-                            <p><strong>Estado:</strong> {orden.estado}</p>
-                            <p><strong>Pagado:</strong> ${orden.pagado.toLocaleString('es-AR')}</p>
-                            <p><strong>Subtotal:</strong> ${orden.subTotal.toLocaleString('es-AR')}</p>
-                            <p><strong>Total:</strong> ${orden.total.toLocaleString('es-AR')}</p>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <h3>Contacto</h3>
+                                <p><strong>Teléfono:</strong> {orden.contacto != null ? orden.contacto.telefono : 'Sin contacto.'}</p>
+                                <p><strong>Email:</strong> {orden.contacto != null ? orden.contacto.email : 'Sin email'}</p>
+                            </div>
+
+                            <div style={{ marginBottom: '1rem' }}>
+                                <h3>Domicilio</h3>
+                                <p><strong>Dirección:</strong> {orden.domicilio ? orden.domicilio.direccion : 'Sin domicilio'}</p>
+                                <p><strong>Provincia:</strong> {orden.domicilio ? orden.domicilio.provincia : 'Ninguna'}</p>
+                            </div>
                         </>
                     )
                 }
-                {orden.estado == 'parcial_pendiente' && orden.tipoOrden != 'AGREGACION_DE_STOCK' && orden.tipoOrden != 'DEVOLUCION_O_ELIMINACION_DE_STOCK' && (
-                    <ButtonHiellow onClick={() => setEstado(!estado)}>Actualizar a pagado ${(orden.total - orden.pagado).toLocaleString('es-AR')}</ButtonHiellow>
+
+
+                <div style={{ marginBottom: '1rem', color: '#0066cc' }}>
+                    {fechasIguales ? (
+                        <p><strong>Fecha de entrega y carga: </strong>{formatearFecha(fechaCarga)}</p>
+                    ) : (
+                        <>
+                            <p><strong>Fecha de carga:</strong> {formatearFecha(fechaCarga)} - {formatearHora(fechaCarga)}</p>
+                            <p><strong>Fecha de entrega:</strong> {formatearFecha(fechaEntrega)} - {formatearHora(fechaEntrega)}</p>
+                        </>
+                    )}
+                </div>
+                {manufacturados.length > 0 && (
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h3>Productos Manufacturados</h3>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={tableStyle}>
+                                <thead style={theadStyle}>
+                                    <tr>
+                                        <th style={cellStyle}>Producto</th>
+                                        <th style={cellStyle}>Descripción</th>
+                                        <th style={cellStyle}>Cantidad</th>
+                                        <th style={cellStyle}>Precio</th>
+                                        <th style={cellStyle}>Descuento</th>
+                                        <th style={cellStyle}>Observaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {manufacturados.map((item, index) => (
+                                        <tr key={index} style={index % 2 === 0 ? rowEven : rowOdd}>
+                                            <td style={cellStyle}>{item.productos.denominacion}</td>
+                                            <td style={cellStyle}>{item.productos.descripcion || 'Sin descripción'}</td>
+                                            <td style={cellStyle}>{item.cantidadProducto}</td>
+                                            <td style={cellStyle}>${item.productos.precio.toFixed(2)}</td>
+                                            <td style={cellStyle}>${item.descuentosPorProducto.toLocaleString('es-AR')}</td>
+                                            <td style={cellStyle}>{item.observaciones}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+                {insumos.length > 0 && (
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h3>Otros Productos (Insumos)</h3>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={tableStyle}>
+                                <thead style={theadStyle}>
+                                    <tr>
+                                        <th style={cellStyle}>Producto</th>
+                                        <th style={cellStyle}>¿Para Elaborar?</th>
+                                        <th style={cellStyle}>Cantidad</th>
+                                        <th style={cellStyle}>Precio</th>
+                                        <th style={cellStyle}>Descuento</th>
+                                        <th style={cellStyle}>Observaciones</th>
+                                        <th style={cellStyle}>Marca</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {insumos.map((item, index) => (
+                                        <tr key={index} style={index % 2 === 0 ? rowEven : rowOdd}>
+                                            <td style={cellStyle}>{item?.insumo?.denominacion}</td>
+                                            <td style={cellStyle}>{item?.insumo?.esParaElaborar ? 'Sí' : 'No'}</td>
+                                            <td style={cellStyle}>{item?.cantidadInsumo}</td>
+                                            <td style={cellStyle}>${item.insumo.precio.toLocaleString('es-AR')}</td>
+                                            <td style={cellStyle}>${(!item.productos) ? item?.descuentosPorProducto.toLocaleString('es-AR') : 0}</td>
+                                            <td style={cellStyle}>{(!item.productos) ? item?.observaciones : 'Sin observaciones'}</td>
+                                            <td style={cellStyle}>{(item.insumo.marca) ? item.insumo.marca.nombre : 'sin marca'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 )}
             </div>
-            {
-                orden.tipoOrden != 'AGREGACION_DE_STOCK' && orden.tipoOrden != 'DEVOLUCION_O_ELIMINACION_DE_STOCK' && (
-                    <>
-                        <div style={{ marginBottom: '1rem' }}>
-                            <h3>Contacto</h3>
-                            <p><strong>Teléfono:</strong> {orden.contacto != null ? orden.contacto.telefono : 'Sin contacto.'}</p>
-                            <p><strong>Email:</strong> {orden.contacto != null ? orden.contacto.email : 'Sin email'}</p>
-                        </div>
-
-                        <div style={{ marginBottom: '1rem' }}>
-                            <h3>Domicilio</h3>
-                            <p><strong>Dirección:</strong> {orden.domicilio ? orden.domicilio.direccion : 'Sin domicilio'}</p>
-                            <p><strong>Provincia:</strong> {orden.domicilio ? orden.domicilio.provincia : 'Ninguna'}</p>
-                        </div>
-                    </>
-                )
-            }
-
-
-            <div style={{ marginBottom: '1rem', color: '#0066cc' }}>
-                {fechasIguales ? (
-                    <p><strong>Fecha de entrega y carga: </strong>{formatearFecha(fechaCarga)}</p>
-                ) : (
-                    <>
-                        <p><strong>Fecha de carga:</strong> {formatearFecha(fechaCarga)} - {formatearHora(fechaCarga)}</p>
-                        <p><strong>Fecha de entrega:</strong> {formatearFecha(fechaEntrega)} - {formatearHora(fechaEntrega)}</p>
-                    </>
-                )}
-            </div>
-            {manufacturados.length > 0 && (
-                <div style={{ marginBottom: '2rem' }}>
-                    <h3>Productos Manufacturados</h3>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={tableStyle}>
-                            <thead style={theadStyle}>
-                                <tr>
-                                    <th style={cellStyle}>Producto</th>
-                                    <th style={cellStyle}>Descripción</th>
-                                    <th style={cellStyle}>Cantidad</th>
-                                    <th style={cellStyle}>Precio</th>
-                                    <th style={cellStyle}>Descuento</th>
-                                    <th style={cellStyle}>Observaciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {manufacturados.map((item, index) => (
-                                    <tr key={index} style={index % 2 === 0 ? rowEven : rowOdd}>
-                                        <td style={cellStyle}>{item.productos.denominacion}</td>
-                                        <td style={cellStyle}>{item.productos.descripcion || 'Sin descripción'}</td>
-                                        <td style={cellStyle}>{item.cantidadProducto}</td>
-                                        <td style={cellStyle}>${item.productos.precio.toFixed(2)}</td>
-                                        <td style={cellStyle}>${item.descuentosPorProducto.toLocaleString('es-AR')}</td>
-                                        <td style={cellStyle}>{item.observaciones}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-            {insumos.length > 0 && (
-                <div style={{ marginBottom: '2rem' }}>
-                    <h3>Otros Productos (Insumos)</h3>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={tableStyle}>
-                            <thead style={theadStyle}>
-                                <tr>
-                                    <th style={cellStyle}>Producto</th>
-                                    <th style={cellStyle}>¿Para Elaborar?</th>
-                                    <th style={cellStyle}>Cantidad</th>
-                                    <th style={cellStyle}>Precio</th>
-                                    <th style={cellStyle}>Descuento</th>
-                                    <th style={cellStyle}>Observaciones</th>
-                                    <th style={cellStyle}>Marca</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {insumos.map((item, index) => (
-                                    <tr key={index} style={index % 2 === 0 ? rowEven : rowOdd}>
-                                        <td style={cellStyle}>{item?.insumo?.denominacion}</td>
-                                        <td style={cellStyle}>{item?.insumo?.esParaElaborar ? 'Sí' : 'No'}</td>
-                                        <td style={cellStyle}>{item?.cantidadInsumo}</td>
-                                        <td style={cellStyle}>${item.insumo.precio.toLocaleString('es-AR')}</td>
-                                        <td style={cellStyle}>${(!item.productos) ? item?.descuentosPorProducto.toLocaleString('es-AR') : 0}</td>
-                                        <td style={cellStyle}>{(!item.productos) ? item?.observaciones : 'Sin observaciones'}</td>
-                                        <td style={cellStyle}>{(item.insumo.marca) ? item.insumo.marca.nombre : 'sin marca'}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-            <Button onClick={handlerEliminar}>Eliminar orden</Button>
         </div>
     );
 };
