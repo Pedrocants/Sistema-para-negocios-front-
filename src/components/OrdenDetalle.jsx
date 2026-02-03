@@ -44,7 +44,7 @@ const OrderDetail = ({ token }) => {
 
     const formatearHora = (fecha) => fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const formatearFecha = (fecha) => fecha.toLocaleDateString();
-    const fechasIguales = fechaCarga.toDateString() === fechaEntrega.toDateString();
+    const fechasIguales = fechaCarga.toISOString() === fechaEntrega.toISOString();
 
     const manufacturados = orden.detalle.filter(d => d.productos && d.productos.denominacion);
     const insumos = orden.detalle.filter(d => d.insumo && d.insumo.denominacion);
@@ -131,7 +131,7 @@ const OrderDetail = ({ token }) => {
 
                 <div style={{ marginBottom: '1rem', color: '#0066cc' }}>
                     {fechasIguales ? (
-                        <p><strong>Fecha de entrega y carga: </strong>{formatearFecha(fechaCarga)}</p>
+                        <p><strong>Fecha de entrega y carga: </strong>{formatearFecha(fechaCarga) + " a las " + formatearHora(fechaCarga)}</p>
                     ) : (
                         <>
                             <p><strong>Fecha de carga:</strong> {formatearFecha(fechaCarga)} - {formatearHora(fechaCarga)}</p>

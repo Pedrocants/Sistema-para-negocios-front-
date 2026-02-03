@@ -69,18 +69,19 @@ export const FacturaPDF = ({ orden }) => {
                 {fechasIguales ? (
                     <p>
                         <strong>Fecha:</strong>{" "}
-                        {fechaCarga.toLocaleDateString()}
+                        {fechaCarga.toLocaleDateString()}{" - "}
+                        {fechaCarga.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                 ) : (
                     <>
                         <p>
                             <strong>Carga:</strong>{" "}
-                            {fechaCarga.toLocaleDateString()}{" "}
+                            {fechaCarga.toLocaleDateString()}{" - "}
                             {fechaCarga.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </p>
                         <p>
                             <strong>Entrega:</strong>{" "}
-                            {fechaEntrega.toLocaleDateString()}{" "}
+                            {fechaEntrega.toLocaleDateString()}{" - "}
                             {fechaEntrega.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </p>
                     </>
