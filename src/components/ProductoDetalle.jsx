@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Select from 'react-select';
 import styled from 'styled-components';
 import { RadioGroup, RadioInput, RadioLabel, RadioOption } from './radioStyles';
+import { limitarDecimales } from '../helper/limitarDecimales';
 
 const Input = styled.input`
   width: 100%;
@@ -324,7 +325,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
                   />
                   <div>
                     <Label htmlFor="cantidadP">Cantidad de producto manufacturado:</Label>
-                    <Number name="cantidadP" id="cantidadP" type='number' step="0.01" onWheel={(e) => e.target.blur()} onChange={handleInput} placeholder="0.00" disabled={selectedItemProducto === null} />
+                    <Number name="cantidadP" id="cantidadP" type='number' step="0.01" onWheel={(e) => e.target.blur()} onChange={handleInput} placeholder="0.00" disabled={selectedItemProducto === null} onInput={(e) => limitarDecimales(e)} />
                     {
                       (labelCantidad.labelProducto == true) && (
                         <h5 style={{
@@ -351,7 +352,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
 
                   <div>
                     <Label htmlFor="campoInsumo">{'Cantidad de otros productos (no manufacturados)'}</Label>
-                    <Number type='number' step="0.01" onWheel={(e) => e.target.blur()} name="campoInsumo" id="campoInsumo" className="campoInsumo" onChange={handleInputInsumo} placeholder="0.00" disabled={selectedItemInsumo === null} />
+                    <Number type='number' step="0.01" onWheel={(e) => e.target.blur()} name="campoInsumo" id="campoInsumo" className="campoInsumo" onChange={handleInputInsumo} placeholder="0.00" disabled={selectedItemInsumo === null} onInput={(e) => limitarDecimales(e)} />
                     {
                       (labelCantidad.labelInsumo == true) && (
                         <h5 style={{

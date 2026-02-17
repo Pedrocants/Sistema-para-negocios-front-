@@ -51,11 +51,16 @@ const OrderDetail = ({ token }) => {
 
     const handlerEliminar = async () => {
         if (orden) {
+            let b = window.confirm("¿Desea eliminar la siguiente orden?, al presionar aceptar, no se modificara ningun dato del inventario.");
+            if (!b) {
+                return;
+            }
+
             const data = await obtenerDatos(eliminarUnaOrden(id), 'DELETE', token);
             alert("Orden eliminada con exito.");
             window.location.href = '/';
         }
-    }
+    };
 
     return (
         <div style={{

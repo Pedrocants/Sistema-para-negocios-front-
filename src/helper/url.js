@@ -80,3 +80,6 @@ export function actualizarProducto(manufacturado = false) {
     }
     return obtenerUrl() + "insumo/actualizar";
 }
+export function traerDatosCliente(idCliente) {
+    return obtenerUrl() + "orden/cliente/" + idCliente;
+}

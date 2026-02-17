@@ -183,185 +183,202 @@ const IngredientesCard = styled.article`
 `;
 
 const ProductoDetalleInfo = ({ token, manufacturado = false }) => {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const [producto, setProducto] = useState(null);
-    const [denominacion, setDenom] = useState('');
-    const [precio, setPrecio] = useState(0);
-    const [botonEstado, setBotonEstado] = useState(false);
-    const [historial, setHistorial] = useState();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [producto, setProducto] = useState(null);
+  const [denominacion, setDenom] = useState('');
+  const [precio, setPrecio] = useState(0);
+  const [costo, setCosto] = useState(0);
+  const [botonEstado, setBotonEstado] = useState(false);
+  const [historial, setHistorial] = useState();
 
-    useEffect(() => {
-        async function cargar() {
-            if (id != null && token) {
-                const url = (!manufacturado) ? insumoFindById(id) : manufacturadoFiindById(id);
-                const data = await obtenerDatos(url, 'GET', token);
-                setProducto(data);
-            }
-        }
-        cargar();
-    }, [id, token]);
-    useEffect(() => {
-        if (!producto) {
-            return;
-        }
-        if (precio != producto.precio && precio != 0 || denominacion != producto.denominacion && denominacion != '') {
-            setBotonEstado(true);
-            return;
-        }
-        if (manufacturado && historial == null) {
-            historialProducto();
-        }
-        setPrecio(producto.precio);
-        setDenom(producto.denominacion);
-        setBotonEstado(false);
-    }, [producto]);
-
-    const actualizar = async () => {
-        if (manufacturado) {
-            historial.map((h) => {
-                h.nombreProducto = producto.denominacion;
-            });
-            producto.historial = historial;
-        }
-        const url = actualizarProducto(manufacturado);
-        const datos = obtenerDatos(url, 'PUT', token, producto);
-        setHistorial([]);
-        setDenom('');
-        setPrecio(0);
-        setProducto(null);
-        setBotonEstado(false);
-        navigate('/');
-        return;
+  useEffect(() => {
+    async function cargar() {
+      if (id != null && token) {
+        const url = (!manufacturado) ? insumoFindById(id) : manufacturadoFiindById(id);
+        const data = await obtenerDatos(url, 'GET', token);
+        setProducto(data);
+      }
     }
-    async function historialProducto() {
-        const urlHistorial = obtenerHistorial(producto.idProductoManufacturado);
-        const dataHistorial = await obtenerDatos(urlHistorial, 'GET', token);
-        setHistorial(dataHistorial);
+    cargar();
+  }, [id, token]);
+  useEffect(() => {
+    if (!producto) {
+      return;
     }
-
-    if (!producto || producto.eliminado == true) {
-        return <h2>Cargando...</h2>;
+    if (precio != producto.precio && precio != 0 || denominacion != producto.denominacion && denominacion != '' || producto.costo != costo && producto.costo != 0 && costo != 0) {
+      setBotonEstado(true);
+      return;
     }
+    if (manufacturado && historial == null) {
+      historialProducto();
+    }
+    setPrecio(producto.precio);
+    setCosto(producto?.costo);
+    setDenom(producto.denominacion);
+    setBotonEstado(false);
+  }, [producto]);
 
-    return (
-        <Container>
-            <Title>
-                Detalle de producto #{!manufacturado ? producto.idInsumo : producto.idProductoManufacturado}
-            </Title>
+  const actualizar = async () => {
+    if (manufacturado) {
+      historial.map((h) => {
+        h.nombreProducto = producto.denominacion;
+      });
+      producto.historial = historial;
+    }
+    const url = actualizarProducto(manufacturado);
+    const datos = obtenerDatos(url, 'PUT', token, producto);
+    setHistorial([]);
+    setDenom('');
+    setPrecio(0);
+    setCosto(0);
+    setProducto(null);
+    setBotonEstado(false);
+    alert("Producto actualizado con exito.");
+    navigate('/');
+    return;
+  }
+  async function historialProducto() {
+    const urlHistorial = obtenerHistorial(producto.idProductoManufacturado);
+    const dataHistorial = await obtenerDatos(urlHistorial, 'GET', token);
+    setHistorial(dataHistorial);
+  }
 
+  if (!producto || producto.eliminado == true) {
+    return <h2>Cargando...</h2>;
+  }
+
+  return (
+    <Container>
+      <Title>
+        Detalle de producto #{!manufacturado ? producto.idInsumo : producto.idProductoManufacturado}
+      </Title>
+
+      <FieldGroup>
+        <label>Denominación</label>
+        <input
+          type="text"
+          value={producto.denominacion || ''}
+          onChange={(e) =>
+            setProducto({ ...producto, denominacion: e.target.value })
+          }
+        />
+      </FieldGroup>
+
+      <FieldGroup>
+        <label>Precio</label>
+        <input
+          type="number"
+          value={producto.precio || ''}
+          onChange={(e) =>
+            setProducto({ ...producto, precio: e.target.value })
+          }
+          step="0.01"
+          onWheel={(e) => e.target.blur()}
+        />
+      </FieldGroup>
+
+      {!manufacturado ? (
+        <>
+          <FieldGroup>
+            <label>Es para elaborar</label>
+            <input
+              type="checkbox"
+              checked={producto.esParaElaborar || false}
+              disabled
+            />
+          </FieldGroup>
+
+          <FieldGroup>
+            <label>Marca</label>
+            <h3>{producto.marca?.nombre || 'Sin marca'}</h3>
+          </FieldGroup>
+          <FieldGroup>
+
+            <label>Costo:</label>
+            <input
+              type="number"
+              value={producto.costo || ''}
+              onChange={(e) =>
+                setProducto({ ...producto, costo: e.target.value })
+              }
+              step="0.01"
+              onWheel={(e) => e.target.blur()}
+            />
+          </FieldGroup>
+        </>
+      ) : (
+        <>
+          {producto.tiempo_estimado != null && (
             <FieldGroup>
-                <label>Denominación</label>
-                <input
-                    type="text"
-                    value={producto.denominacion || ''}
-                    onChange={(e) =>
-                        setProducto({ ...producto, denominacion: e.target.value })
-                    }
-                />
+              <Label>Tiempo estimado:</Label>
+              <h3>{producto.tiempo_estimado}</h3>
             </FieldGroup>
+          )}
 
-            <FieldGroup>
-                <label>Precio</label>
-                <input
-                    type="number"
-                    value={producto.precio || ''}
-                    onChange={(e) =>
-                        setProducto({ ...producto, precio: e.target.value })
-                    }
-                    step="0.01"
-                    onWheel={(e) => e.target.blur()}
-                />
-            </FieldGroup>
+          {producto.descripcion && (
+            <>
+              <label>Descripción:</label>
+              <h3><strong>{producto.descripcion}</strong></h3>
+            </>
+          )}
 
-            {!manufacturado ? (
-                <>
-                    <FieldGroup>
-                        <label>Es para elaborar</label>
-                        <input
-                            type="checkbox"
-                            checked={producto.esParaElaborar || false}
-                            disabled
-                        />
-                    </FieldGroup>
+          {Array.isArray(producto.insumos) && producto.insumos.length > 0 && (
+            <IngredientesWrapper>
+              <IngredientesHeader>
+                <h2>Ingredientes:</h2>
+              </IngredientesHeader>
 
-                    <FieldGroup>
-                        <label>Marca</label>
-                        <h3>{producto.marca?.nombre || 'Sin marca'}</h3>
-                    </FieldGroup>
-                </>
-            ) : (
-                <>
-                    {producto.tiempo_estimado != null && (
-                        <FieldGroup>
-                            <Label>Tiempo estimado:</Label>
-                            <h3>{producto.tiempo_estimado}</h3>
-                        </FieldGroup>
-                    )}
+              {/* Tabla Desktop */}
+              <IngredientesTable>
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Marca</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {producto.insumos.map((it, idx) => (
+                    <IngredientesRow key={it.id ?? idx}>
+                      <td>{it.denominacion}</td>
+                      <td>{(it.marca != null) ? it.marca?.nombre : 'Sin marca'}</td>
+                    </IngredientesRow>
+                  ))}
+                </tbody>
+              </IngredientesTable>
+              <IngredientesCardGrid>
+                {producto.insumos.map((it, idx) => (
+                  <IngredientesCard key={it.idInsumo ?? idx}>
+                    <div>
+                      <h3>{it.denominacion}</h3>
+                    </div>
+                    <p>Marca: <span>{(it.marca != null) ? it.marca?.nombre : 'Sin marca'}</span></p>
+                    <p>Stock actual: <span>{it.detalle?.stockActual}</span></p>
+                    <p>Unidad medida: <span>{it.unidadMedida?.denominacion}</span></p>
+                  </IngredientesCard>
+                ))}
+              </IngredientesCardGrid>
+            </IngredientesWrapper>
+          )}
+        </>
+      )}
 
-                    {producto.descripcion && (
-                        <>
-                            <label>Descripción:</label>
-                            <h3><strong>{producto.descripcion}</strong></h3>
-                        </>
-                    )}
+      <FieldGroup>
+        <label>Detalle (stock actual / mínimo)</label>
+        <input
+          type="text"
+          disabled={true}
+          value={
+            producto.detalle
+              ? `${producto.detalle.stockActual} / ${producto.detalle.stockMinimo}`
+              : ''
+          }
+          readOnly
+        />
+      </FieldGroup>
 
-                    {Array.isArray(producto.insumos) && producto.insumos.length > 0 && (
-                        <IngredientesWrapper>
-                            <IngredientesHeader>
-                                <h2>Ingredientes:</h2>
-                            </IngredientesHeader>
-
-                            {/* Tabla Desktop */}
-                            <IngredientesTable>
-                                <thead>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th>Marca</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {producto.insumos.map((it, idx) => (
-                                        <IngredientesRow key={it.id ?? idx}>
-                                            <td>{it.denominacion}</td>
-                                            <td>{(it.marca != null) ? it.marca?.nombre : 'Sin marca'}</td>
-                                        </IngredientesRow>
-                                    ))}
-                                </tbody>
-                            </IngredientesTable>
-                            <IngredientesCardGrid>
-                                {producto.insumos.map((it, idx) => (
-                                    <IngredientesCard key={it.idInsumo ?? idx}>
-                                        <div>
-                                            <h3>{it.denominacion}</h3>
-                                        </div>
-                                        <p>Marca: <span>{(it.marca != null) ? it.marca?.nombre : 'Sin marca'}</span></p>
-                                        <p>Stock actual: <span>{it.detalle?.stockActual}</span></p>
-                                        <p>Unidad medida: <span>{it.unidadMedida?.denominacion}</span></p>
-                                    </IngredientesCard>
-                                ))}
-                            </IngredientesCardGrid>
-                        </IngredientesWrapper>
-                    )}
-                </>
-            )}
-
-            <FieldGroup>
-                <label>Detalle (stock actual / mínimo)</label>
-                <input
-                    type="text"
-                    disabled={true}
-                    value={
-                        producto.detalle
-                            ? `${producto.detalle.stockActual} / ${producto.detalle.stockMinimo}`
-                            : ''
-                    }
-                    readOnly
-                />
-            </FieldGroup>
-
-            {botonEstado && <ButtonHiellow onClick={actualizar}>Actualizar</ButtonHiellow>}
-        </Container>
-    );
+      {botonEstado && <ButtonHiellow onClick={actualizar}>Actualizar</ButtonHiellow>}
+    </Container>
+  );
 };
 export default ProductoDetalleInfo;

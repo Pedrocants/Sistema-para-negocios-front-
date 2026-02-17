@@ -3,7 +3,7 @@ import Modal from 'react-modal';
 import { RadioGroup, RadioInput, RadioLabel, RadioOption } from './radioStyles';
 import styled from 'styled-components';
 import { obtenerDatos } from '../helper/traeDatos';
-import { mostrarProductos, getInsumos, getClientes, guardarOrden, getProvincias } from '../helper/url';
+import { mostrarProductos, getInsumos, getClientes, guardarOrden, getProvincias, traerDatosCliente } from '../helper/url';
 import { convertirFechaConZonaHoraria } from '../helper/definirFecha';
 import { ProductoDetalle } from './ProductoDetalle';
 import Contacto from '../prototype/Contacto';
@@ -124,6 +124,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
   const [tipoPago, setTipoPago] = useState('EFECTIVO');
   const [optionClient, setOptionClient] = useState('Elegir');
   const [tipoCliente, setTipoCliente] = useState();
+  const [idContactoDomicilio, setIdContactoDomicilio] = useState();
   const [provincias, setProvincias] = useState([]);
   const [errors, setErrors] = useState(null);
 
@@ -131,6 +132,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
     const selectedItemid = parseInt(e.target.value, 10);
     const item = clientes.find((item) => item.idCliente === selectedItemid);
     setSelectedItem(item);
+    //console.log(item);
 
   };
   useEffect(() => {
@@ -176,7 +178,19 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
     if (errors) {
       onLabel(errors);
     }
-  }, [errors])
+  }, [errors]);
+
+  useEffect(() => {
+    async function traerDatosIdCliente() {
+
+      if (selectedItem) {
+        const url = traerDatosCliente(selectedItem.idCliente);
+        const data = await obtenerDatos(url, 'GET', token);
+        setIdContactoDomicilio(data);
+      }
+    }
+    traerDatosIdCliente();
+  }, [selectedItem]);
 
   const handleAgregarDetalle = () => {
     if (productos?.length > 0 || insumos?.length > 0) {
@@ -257,7 +271,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
 
     const esCaja = ordenTipoForm === 'caja';
 
-    if (!esCaja && optionClient == 'elegir' && !selectedItem) {
+    if (!esCaja && optionClient == 'Elegir' && !selectedItem) {
       alert('Seleccione un cliente antes de guardar.');
       return;
     }
@@ -314,8 +328,12 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
         tipoCliente,
         eliminado: false
       } : selectedItem,
-      contacto: esCaja ? null : contacto,
-      domicilio: (esCaja) ? null : { direccion, provincia },
+      contacto: esCaja ? null : (optionClient == 'Elegir') ? {
+        idContacto: idContactoDomicilio.idContacto
+      } : contacto,
+      domicilio: (esCaja) ? null : (optionClient == 'Elegir') ? {
+        idDomicilio: idContactoDomicilio.idDomicilio
+      } : { direccion, provincia },
       usuario: { idUsuario: userId },
       detalle: ordenDetalle,
       fecha_entrega,
