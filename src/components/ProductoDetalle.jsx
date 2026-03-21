@@ -104,7 +104,66 @@ const Label = styled.label`
     color: #bbb;
     font-size: 14px;
   `;
-export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, onActualizarSumaTotal, setOrdenDetalle, calcularDescuentos }) => {
+
+const styles = {
+
+  container: {
+    marginTop: "12px",
+    background: "#1a1a1a",
+    padding: "12px",
+    borderRadius: "6px",
+    border: "1px solid #333"
+  },
+
+  title: {
+    marginBottom: "10px",
+    color: "#f5f5f5",
+    fontWeight: "500",
+    fontSize: "16px"
+  },
+
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: "14px"
+  },
+
+  th: {
+    textAlign: "left",
+    padding: "8px",
+    background: "#2a2a2a",
+    color: "#ddd",
+    borderBottom: "1px solid #444"
+  },
+
+  td: {
+    padding: "8px",
+    color: "#ccc",
+    borderBottom: "1px solid #333"
+  },
+  trashButton: {
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "18px",
+    color: "#ff4d4f",
+    transition: "all 0.2s ease",
+  },
+
+  trashButtonHover: {
+    color: "#ff1a1a",
+    transform: "scale(1.2)",
+  }
+
+};
+
+const TrashButton = ({ onClick }) => (
+  <button onClick={onClick} style={styles.trashButton}>
+    🗑
+  </button>
+);
+
+export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, onActualizarSumaTotal, setOrdenDetalle, calcularDescuentos, onDelete }) => {
 
   const [estadoDeBoton, setEstado] = useState(true);
   const [selectedItemProducto, setSelectedItemProductos] = useState(null);
@@ -125,6 +184,11 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
   const [radioProductos, setRadio] = useState('');
   const [numero, setNumero] = useState(0);
   const [costo, setSumaCosto] = useState(0);
+  const [unidad, setUnidad] = useState();
+  const [unidad2, setUnidad2] = useState();
+  const [detalle, setDetalle] = useState();
+  const [producto, setProducto] = useState();
+  const [insumo, setInsumo] = useState();
 
   const productosOptions = productos?.map((item) => ({
     value: item.idProductoManufacturado,
@@ -133,7 +197,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
 
   const insumosOptions = insumos?.map((item) => ({
     value: item.idInsumo,
-    label: item.denominacion + " por " + item.unidadMedida?.denominacion + "  $" + item.precio.toLocaleString('es-AR') + " -- $" + item?.costo.toLocaleString('es-AR')
+    label: item.denominacion + " por " + item.unidadMedida?.denominacion + "  $" + item.precio.toLocaleString('es-AR') + " -- $" + item.costo.toLocaleString('es-AR')
   }));
 
   const agregarDetalles = (ordenDetalle) => {
@@ -149,7 +213,6 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
           const copia = [...prevOrdenDetalle];
           if (copia.length > 0) {
             copia[cont - 1] = ordenDetalle;
-            //console.log(cont - 1);
           }
           return copia;
         });
@@ -167,18 +230,28 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
     const item = productos.find(
       (item) => item.idProductoManufacturado === selectedItemId
     );
+    const denom = productos.find(
+      item => item.idProductoManufacturado == selectedItemId
+    );
+    setUnidad(denom.unidad.denominacion);
+    setProducto(denom.denominacion);
     setSelectedItemProductos(item);
   };
 
   const handleSelectChangeInsumo = (selectedOption) => {
     const selectedItemId = parseInt(selectedOption, 10);
     const item = insumos.find((item) => item.idInsumo === selectedItemId);
+    const denom = insumos.find(
+      item => item.idInsumo == selectedItemId
+    );
+    setUnidad2(denom.unidadMedida.denominacion);
+    setInsumo(denom.denominacion);
     setSelectedItemInsumo(item);
   };
 
   const handleInput = (e) => {
     const cantidad = e.target.value;
-    if (cantidad > selectedItemProducto.detalle?.stockActual) {
+    if (cantidad > selectedItemProducto.detalle.stockActual) {
       setLabelCantidad(prev => ({
         ...prev,
         labelProducto: true
@@ -200,7 +273,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
 
   const handleInputInsumo = (e) => {
     const cantidad = e.target.value;
-    if (cantidad > selectedItemInsumo?.detalle.stockActual) {
+    if (cantidad > selectedItemInsumo.detalle.stockActual) {
       setLabelCantidad(prev => ({
         ...prev,
         labelInsumo: true
@@ -230,6 +303,17 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
     setDescuentos(() => descuentos.target.value);
   }
   function sumarTodo() {
+
+    if (unidad && unidad.toLowerCase().includes("unidades") && cantidadProducto % 1 != 0) {
+      alert("No podes añadir numeros decimales en productos con unidades.");
+      return;
+    }
+
+    if (unidad2 && unidad2.toLowerCase().includes("unidades") && cantidadInsumo % 1 != 0) {
+      alert("No podes añadir numeros decimales en productos con unidades.");
+      return;
+    }
+
     let nuevaSuma;
     let nuevaSumaCostos = 0;
     switch (radioProductos) {
@@ -256,6 +340,7 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
       'cantidadProducto': (selectedItemProducto && cantidadProducto) ? cantidadProducto : 0,
       'cantidadInsumo': (selectedItemInsumo && cantidadInsumo) ? cantidadInsumo : 0
     };
+    setDetalle(ordenDetalle);
     agregarDetalles(ordenDetalle);
     setEstado(() => false);
     setNumero(cont);
@@ -325,7 +410,11 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
                   />
                   <div>
                     <Label htmlFor="cantidadP">Cantidad de producto manufacturado:</Label>
-                    <Number name="cantidadP" id="cantidadP" type='number' step="0.01" onWheel={(e) => e.target.blur()} onChange={handleInput} placeholder="0.00" disabled={selectedItemProducto === null} onInput={(e) => limitarDecimales(e)} />
+                    <Number name="cantidadP" id="cantidadP" type='number' step="0.01" min="0" onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === '+' || e.key === 'e') {
+                        e.preventDefault();
+                      }
+                    }} onWheel={(e) => e.target.blur()} onChange={handleInput} placeholder="0.00" disabled={selectedItemProducto === null} onInput={(e) => limitarDecimales(e)} />
                     {
                       (labelCantidad.labelProducto == true) && (
                         <h5 style={{
@@ -352,7 +441,11 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
 
                   <div>
                     <Label htmlFor="campoInsumo">{'Cantidad de otros productos (no manufacturados)'}</Label>
-                    <Number type='number' step="0.01" onWheel={(e) => e.target.blur()} name="campoInsumo" id="campoInsumo" className="campoInsumo" onChange={handleInputInsumo} placeholder="0.00" disabled={selectedItemInsumo === null} onInput={(e) => limitarDecimales(e)} />
+                    <Number type='number' step="0.01" min="0" onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === '+' || e.key === 'e') {
+                        e.preventDefault();
+                      }
+                    }} onWheel={(e) => e.target.blur()} name="campoInsumo" id="campoInsumo" className="campoInsumo" onChange={handleInputInsumo} placeholder="0.00" disabled={selectedItemInsumo === null} onInput={(e) => limitarDecimales(e)} />
                     {
                       (labelCantidad.labelInsumo == true) && (
                         <h5 style={{
@@ -395,7 +488,11 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
         masDetalle == true && (
           <>
             <Label htmlFor="descuentos">Descuentos por producto:</Label>
-            <Number name="descuentos" id="descuentos" type='number' onChange={agregarDescuentos} />
+            <Number name="descuentos" id="descuentos" onKeyDown={(e) => {
+              if (e.key === '-' || e.key === '+' || e.key === 'e') {
+                e.preventDefault();
+              }
+            }} min="0" onWheel={(e) => e.target.blur()} type='number' onChange={agregarDescuentos} />
             <Label htmlFor="obs">Observaciones: </Label>
             <Input name="obs" id="obs" type='text' onChange={agregarObservaciones} />
 
@@ -406,8 +503,65 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
       <hr />
     </CajaProducto >
   ) : (
-    <>
-      <h3>Detalle {numero}: ${sumaTotal.toLocaleString("es-AR")} --- ${costo.toLocaleString('es-AR')}</h3>
-    </>
+    <div style={styles.container}>
+
+      <h3 style={styles.title}>
+        Detalle {numero}: ${sumaTotal.toLocaleString("es-AR")} --- ${costo.toLocaleString("es-AR")}
+      </h3>
+
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>Tipo</th>
+            <th style={styles.th}>Nombre</th>
+            <th style={styles.th}>Cantidad</th>
+            <th style={styles.th}>
+              <TrashButton onClick={() => onDelete(numero)} />
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            {
+              detalle.productos && (
+                <>
+                  <td style={styles.td}>
+                    {"Producto"}
+                  </td>
+
+                  <td style={styles.td}>
+                    {producto}
+                  </td>
+
+                  <td style={styles.td}>
+                    {cantidadProducto + " " + unidad}
+                  </td>
+
+                </>
+              )
+            }
+          </tr>
+          <tr>
+            {
+              detalle.insumo && (
+                <>
+                  <td style={styles.td}>
+                    {"No manufacturado"}
+                  </td>
+                  <td style={styles.td}>
+                    {insumo}
+                  </td>
+                  <td style={styles.td}>
+                    {detalle.cantidadInsumo + " " + unidad2}
+                  </td>
+                </>
+              )
+            }
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
   )
 };

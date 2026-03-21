@@ -61,7 +61,11 @@ const SelectInsumo = ({ insumos, addInsumoItem, denomUnidad, denominacionProduct
                     ))}
                 </Select>
                 <Label htmlFor="cantidad">Cantidad:</Label>
-                <Input type="number" id="cantidad" placeholder="0" onChange={handlerInput} step="0.01" min="0" max="100000" onWheel={(e) => e.target.blur()} />
+                <Input type="number" id="cantidad" placeholder="0" onChange={handlerInput} step="0.01" min="0" max="100000" onWheel={(e) => e.target.blur()} onKeyDown={(e) => {
+                    if (e.key === '-' || e.key === '+' || e.key === 'e') {
+                        e.preventDefault();
+                    }
+                }} />
                 <h3><span>{texto}</span></h3>
                 <Button type="button" disabled={bottonEstado} onClick={addItem}> {bottonEstado == false ? "Añadir" : "Listo..."}</Button>
             </div>

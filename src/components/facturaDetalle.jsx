@@ -64,6 +64,14 @@ export const FacturaPDF = ({ orden }) => {
                 <strong>Total:</strong>{" "}
                 ${orden.total.toLocaleString("es-AR")}
             </p>
+            <p>
+                <strong>Pagado:</strong>{" "}
+                ${orden.pagado.toLocaleString("es-AR")}
+            </p>
+            <p>
+                <strong>Estado de orden:</strong>{" "}
+                {orden.estado == "parcial_pendiente" ? "IMPAGA / PENDIENTE" : "PAGADA / ENTREGADA"}
+            </p>
 
             <div style={{ marginBottom: "1rem" }}>
                 {fechasIguales ? (
@@ -187,11 +195,11 @@ const theadStyle = {
 
 const cellStyle = {
     padding: "8px 10px",
-    border: "1px solid #ccc",
+    border: "1px solid #f00",
     textAlign: "left",
     fontSize: "12px",
     wordWrap: "break-word"
 };
 
 const rowEven = { backgroundColor: "black" };
-const rowOdd = { backgroundColor: "#ffffff" };
+const rowOdd = { backgroundColor: "#000" };

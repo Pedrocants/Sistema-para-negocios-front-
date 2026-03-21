@@ -80,11 +80,6 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
     }
     const handlerStock = (e) => {
         const stock = parseFloat(e.target.value);
-        if (stock < stockMinimo) {
-            alert("stock no puede ser menor a " + stockMinimo);
-            e.target.value = "";
-            return;
-        }
         setStockActual(stock);
     }
     const handlerSelectUnidad = (e) => {
@@ -238,7 +233,7 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
                         </>
                     )}
                     <h3>Detalles del producto:</h3>
-                    <Label htmlFor="selectEsInsumo">¿Es un producto insumo?</Label>
+                    <Label htmlFor="selectEsInsumo">¿Es un producto No manufacturado?</Label>
                     <Select id="selectEsInsumo" onChange={handleSelectChange}>
                         <option value={'No'}>No</option>
                         <option value={'Si'}>Si</option>
@@ -308,12 +303,20 @@ const ModalProductos = ({ isModalOpen, toggleModal, openConfirmationModal, onLab
                         )
                     }
                     <Label htmlFor="precio">Precio:</Label>
-                    <Input type="number" name="precio" id="precio" onWheel={(e) => e.target.blur()} onChange={(e) => (setPrecio(parseFloat(e.target.value)))} step="0.01" min="0" max="100000" />
+                    <Input type="number" name="precio" id="precio" onKeyDown={(e) => {
+                        if (e.key === '-' || e.key === '+' || e.key === 'e') {
+                            e.preventDefault();
+                        }
+                    }} onWheel={(e) => e.target.blur()} onChange={(e) => (setPrecio(parseFloat(e.target.value)))} step="0.01" min="0" max="100000" />
                     {
                         selected == 'Si' && (
                             <>
                                 <Label htmlFor="costo">Costo:</Label>
-                                <Input type="number" name="costo" id="costo" onWheel={(e) => e.target.blur()} onChange={(e) => (setCosto(parseFloat(e.target.value)))} step="0.01" min="0" max="100000" />
+                                <Input type="number" name="costo" id="costo" onKeyDown={(e) => {
+                                    if (e.key === '-' || e.key === '+' || e.key === 'e') {
+                                        e.preventDefault();
+                                    }
+                                }} onWheel={(e) => e.target.blur()} onChange={(e) => (setCosto(parseFloat(e.target.value)))} step="0.01" min="0" max="100000" />
                             </>
                         )
                     }

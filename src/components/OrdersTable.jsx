@@ -106,8 +106,8 @@ const OrdersTable = ({ orders, addIdOrden, page, onPageChange }) => {
                 <TableData>#{order.idOrden}</TableData>
                 <TableData>{order.cliente}</TableData>
                 <TableData>${order.total.toLocaleString('es-AR')}</TableData>
-                <TableData style={{ color: order?.pagado >= order?.total ? '#00e676' : '#ff1744' }}>
-                  {order?.pagado >= order?.total ? 'Sí' : 'No'}
+                <TableData style={{ color: order?.estado === 'pagada' ? '#00e676' : '#ff1744' }}>
+                  {order?.estado === 'pagada' ? 'Sí' : 'No'}
                 </TableData>
                 <TableData>
                   <ButtonViewDetail onClick={() => handleViewDetail(order.idOrden)}>Ver Detalle</ButtonViewDetail>

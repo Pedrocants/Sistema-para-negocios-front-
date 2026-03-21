@@ -118,7 +118,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
   const [detalles, setDetalles] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [pagado, setPagado] = useState(null);
-  const [tipo, setTipo] = useState(null);
+  const [tipo, setTipo] = useState('VENTA');
   const [total, setTotal] = useState(0);
   const [ordenDetalle, setOrdenDetalle] = useState([]);
   const [tipoPago, setTipoPago] = useState('EFECTIVO');
@@ -132,7 +132,6 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
     const selectedItemid = parseInt(e.target.value, 10);
     const item = clientes.find((item) => item.idCliente === selectedItemid);
     setSelectedItem(item);
-    //console.log(item);
 
   };
   useEffect(() => {
@@ -207,25 +206,36 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
     }
   };
 
-  const handleQuitarDetalle = () => {
-    if (detalles.length > 0) {
-      const ultimoDetalle = detalles[detalles.length - 1];
-      const ultimaOrdenDetalle = ordenDetalle[detalles.length - 1];
-      const descuento = (ultimaOrdenDetalle && ultimaOrdenDetalle.descuentosPorProducto) ? parseFloat(ultimaOrdenDetalle.descuentosPorProducto) : 0;
+  const handleQuitarDetalle = (n = null) => {
+    if (detalles.length === 0) return;
 
-      const nuevaSuma = parseFloat(ultimoDetalle.suma) - descuento;
+    const index = (!n || isNaN(n)) ? detalles.length - 1 : n - 1;
 
-      const ultSumCosto = (ultimoDetalle.sumaCostos) ? ultimoDetalle.sumaCostos : 0;
+    if (index < 0 || index >= detalles.length) return;
 
-      setSumaCostos((prevSumCosto) => (prevSumCosto - ultSumCosto).toFixed(2));
+    const detalleActual = detalles[index];
+    const ordenActual = ordenDetalle[index];
 
-      setSumaTotal((prevSumaTotal) => (prevSumaTotal - ultimoDetalle.suma).toFixed(2));
-      setTotal((prevTotal) => prevTotal - nuevaSuma);
-      setDetalles((prevDetalles) => prevDetalles.slice(0, -1));
-      if (ordenDetalle.length === detalles.length) {
-        setOrdenDetalle((prevOrdenDetalle) => prevOrdenDetalle.slice(0, -1));
-      }
-    }
+    const descuento = ordenActual?.descuentosPorProducto
+      ? parseFloat(ordenActual.descuentosPorProducto)
+      : 0;
+
+    const nuevaSuma = parseFloat(detalleActual.suma) - descuento;
+    const ultSumCosto = detalleActual.sumaCostos || 0;
+
+    setSumaCostos(prev =>
+      Number((prev - ultSumCosto).toFixed(2))
+    );
+
+    setSumaTotal(prev =>
+      Number((prev - detalleActual.suma).toFixed(2))
+    );
+
+    setTotal(prev => prev - nuevaSuma);
+
+    setDetalles(prev => prev.filter((_, i) => i !== index));
+
+    setOrdenDetalle(prev => prev.filter((_, i) => i !== index));
   };
 
   const actualizarSumaDetalle = (id, nuevaSuma, sumaCostos) => {
@@ -269,8 +279,14 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
   const enviarDatos = (event) => {
     event.preventDefault();
 
-    const esCaja = ordenTipoForm === 'caja';
+    const esCaja = ordenTipoForm === 'caja' || tipo == 'AGREGACION_DE_STOCK' || tipo == 'DEVOLUCION_O_ELIMINACION_DE_STOCK';
 
+    const tiposValidos = ["COMPRA", "VENTA", "PAGO", "DEVOLUCION_O_ELIMINACION_DE_STOCK", "AGREGACION_DE_STOCK"];
+
+    if (!tiposValidos.includes(tipo)) {
+      alert("Seleccione tipo de orden.");
+      return;
+    }
     if (!esCaja && optionClient == 'Elegir' && !selectedItem) {
       alert('Seleccione un cliente antes de guardar.');
       return;
@@ -361,11 +377,12 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
           form.fecha.value = "";
         }
         setTipoCliente(null);
+        setTipoPago('EFECTIVO');
         setOrdenTipoForm('caja');
         setSumaTotal(0);
         setPagado(0);
         setTotal(0);
-        setTipo(null);
+        setTipo('VENTA');
         setSumaCostos(0);
         setDetalles([]);
         setOrdenDetalle([]);
@@ -399,30 +416,35 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
       <ModalContent>
         <h2 style={{ textAlign: 'center' }}>Nueva Orden</h2>
         <Form onSubmit={enviarDatos}>
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-            <label>
-              <input
-                type="radio"
-                name="tipoFormulario"
-                value="caja"
-                checked={ordenTipoForm === 'caja'}
-                onChange={() => setOrdenTipoForm('caja')}
-              />
-              Orden de caja
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="tipoFormulario"
-                value="completa"
-                checked={ordenTipoForm === 'completa'}
-                onChange={() => setOrdenTipoForm('completa')}
-              />
-              Orden completa
-            </label>
-          </div>
+          {
+            tipo !== 'AGREGACION_DE_STOCK' && tipo !== 'DEVOLUCION_O_ELIMINACION_DE_STOCK' && (
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                <label>
+                  <input
+                    type="radio"
+                    name="tipoFormulario"
+                    value="caja"
+                    checked={ordenTipoForm === 'caja'}
+                    onChange={() => setOrdenTipoForm('caja')}
+                  />
+                  Orden de caja
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="tipoFormulario"
+                    value="completa"
+                    checked={ordenTipoForm === 'completa'}
+                    onChange={() => setOrdenTipoForm('completa')}
+                  />
+                  Orden completa
+                </label>
+              </div>
 
-          {ordenTipoForm === 'completa' && (
+            )
+          }
+
+          {ordenTipoForm === 'completa' && tipo !== 'AGREGACION_DE_STOCK' && tipo !== 'DEVOLUCION_O_ELIMINACION_DE_STOCK' && (
             <>
 
               <RadioGroup>
@@ -533,7 +555,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
                 insumos={detalle.insumos}
                 onActualizarSumaTotal={(nuevaSuma, nuevaSumaCostos) => actualizarSumaDetalle(detalle.id, nuevaSuma, nuevaSumaCostos)}
                 setOrdenDetalle={setOrdenDetalle}
-                calcularDescuentos={calcularDescuentos}
+                calcularDescuentos={calcularDescuentos} onDelete={handleQuitarDetalle}
                 token={token}
               />
             ))
@@ -550,7 +572,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
             )
           }
           <Label htmlFor='tipoOrden'>Tipo: </Label>
-          <Select name='tipoOrden' id='tipoOrden' onChange={(event) => (setTipo(event.target.value))}>
+          <Select name='tipoOrden' id='tipoOrden' value={tipo} onChange={(event) => (setTipo(event.target.value))}>
             <option value={null}>Seleccione uno...</option>
             <option value={'PAGO'}>PAGO</option>
             <option value={'COMPRA'}>COMPRA</option>
@@ -573,7 +595,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
                   onWheel={(e) => e.target.blur()}
                 />
                 <Label htmlFor='tipoPago'>tipo de pago:</Label>
-                <Select name='tipoPago' onChange={(event) => (setTipoPago(event.target.value))}>
+                <Select name='tipoPago' value={tipoPago} onChange={(event) => (setTipoPago(event.target.value))}>
                   <option value={'EFECTIVO'}>Efectivo</option>
                   <option value={'TRANSFERENCIA'}>Transferencia</option>
                   <option value={'VILLETERAS_VIRTUALES'}>VILLETERAS VIRTUALES (QR, LINK, ETC.)</option>
