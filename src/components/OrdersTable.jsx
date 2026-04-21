@@ -11,6 +11,32 @@ const TableContainer = styled.div`
   background: linear-gradient(135deg, #1a1a1a, #333);
 `;
 
+const SearchContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+`;
+
+const SearchInput = styled.input`
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background-color: #222;
+  color: #fff;
+  font-size: 14px;
+  width: 250px;
+  transition: background-color 0.3s ease;
+
+  &:focus {
+    background-color: #333;
+    outline: none;
+  }
+
+  &::placeholder {
+    color: #aaa;
+  }
+`;
+
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
@@ -77,19 +103,34 @@ const OrdersTable = ({ orders, addIdOrden, page, onPageChange }) => {
 
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
+  const [search, setSearch] = useState(0);
 
   if (!orders || orders.length === 0) {
-    return <h1>Tabla vacía.</h1>;
+    return <h1>Sin ordenes.</h1>;
   }
 
   const handleViewDetail = (id) => {
     addIdOrden(id);
     navigate(`/ordenes/${id}`);
-  }
+  };
+
+  const handleSearch = (e) => {
+    const id = e.target.value;
+    if (!isNaN(id) && id >= 0) {
+      setSearch(id);
+    }
+    return;
+  };
 
   return (
     <>
       <TableContainer>
+
+        <SearchContainer>
+          <SearchInput onChange={handleSearch} type="number" placeholder="Buscar..." />
+          <ButtonViewDetail onClick={() => handleViewDetail(search)}>Buscar</ButtonViewDetail>
+        </SearchContainer>
+
         <Table>
           <thead>
             <tr>

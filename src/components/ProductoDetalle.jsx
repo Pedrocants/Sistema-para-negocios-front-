@@ -335,6 +335,8 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
     const ordenDetalle = {
       'productos': (selectedItemProducto) ? { idProductoManufacturado: selectedItemProducto.idProductoManufacturado } : null,
       'insumo': (selectedItemInsumo) ? { idInsumo: selectedItemInsumo.idInsumo } : null,
+      'precioInsumo': (selectedItemInsumo) ? selectedItemInsumo.precio : null,
+      'precioProducto': (selectedItemProducto) ? selectedItemProducto.precio : null,
       'descuentosPorProducto': descuentos,
       'observaciones': observaciones,
       'cantidadProducto': (selectedItemProducto && cantidadProducto) ? cantidadProducto : 0,

@@ -33,8 +33,13 @@ const OrderDetail = ({ token }) => {
     }, [estado]);
 
     async function fetchOrden() {
-        const datos = await obtenerDatos(mostrarUnaOrden(id), 'GET', token);
-        setOrden(datos);
+        try {
+
+            const datos = await obtenerDatos(mostrarUnaOrden(id), 'GET', token);
+            setOrden(datos);
+        } catch (error) {
+            alert("Error: orden no encontrada.");
+        }
     }
 
     if (!orden) return <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando detalle...</div>;
@@ -154,7 +159,7 @@ const OrderDetail = ({ token }) => {
                                         <th style={cellStyle}>Producto</th>
                                         <th style={cellStyle}>Descripción</th>
                                         <th style={cellStyle}>Cantidad</th>
-                                        <th style={cellStyle}>Precio</th>
+                                        <th style={cellStyle}>Precio unitario</th>
                                         <th style={cellStyle}>Descuento</th>
                                         <th style={cellStyle}>Observaciones</th>
                                     </tr>
@@ -165,7 +170,7 @@ const OrderDetail = ({ token }) => {
                                             <td style={cellStyle}>{item.productos.denominacion}</td>
                                             <td style={cellStyle}>{item.productos.descripcion || 'Sin descripción'}</td>
                                             <td style={cellStyle}>{item.cantidadProducto}</td>
-                                            <td style={cellStyle}>${item.productos.precio.toFixed(2)}</td>
+                                            <td style={cellStyle}>${item.precioProducto.toFixed(2)}</td>
                                             <td style={cellStyle}>${item.descuentosPorProducto.toLocaleString('es-AR')}</td>
                                             <td style={cellStyle}>{item.observaciones}</td>
                                         </tr>
@@ -185,7 +190,7 @@ const OrderDetail = ({ token }) => {
                                         <th style={cellStyle}>Producto</th>
                                         <th style={cellStyle}>¿Para Elaborar?</th>
                                         <th style={cellStyle}>Cantidad</th>
-                                        <th style={cellStyle}>Precio</th>
+                                        <th style={cellStyle}>Precio unitario</th>
                                         <th style={cellStyle}>Descuento</th>
                                         <th style={cellStyle}>Observaciones</th>
                                         <th style={cellStyle}>Marca</th>
@@ -197,7 +202,7 @@ const OrderDetail = ({ token }) => {
                                             <td style={cellStyle}>{item?.insumo?.denominacion}</td>
                                             <td style={cellStyle}>{item?.insumo?.esParaElaborar ? 'Sí' : 'No'}</td>
                                             <td style={cellStyle}>{item?.cantidadInsumo}</td>
-                                            <td style={cellStyle}>${item.insumo.precio.toLocaleString('es-AR')}</td>
+                                            <td style={cellStyle}>${item.precioInsumo.toLocaleString('es-AR')}</td>
                                             <td style={cellStyle}>${(!item.productos) ? item?.descuentosPorProducto.toLocaleString('es-AR') : 0}</td>
                                             <td style={cellStyle}>{(!item.productos) ? item?.observaciones : 'Sin observaciones'}</td>
                                             <td style={cellStyle}>{(item.insumo.marca) ? item.insumo.marca.nombre : 'sin marca'}</td>

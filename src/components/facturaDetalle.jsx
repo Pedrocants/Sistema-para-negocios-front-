@@ -128,7 +128,7 @@ const TablaProductos = ({ items, tipo }) => (
             <tr>
                 <th style={cellStyle}>Producto</th>
                 <th style={cellStyle}>Cantidad</th>
-                <th style={cellStyle}>Precio</th>
+                <th style={cellStyle}>Precio unitario</th>
             </tr>
         </thead>
         <tbody>
@@ -146,7 +146,7 @@ const TablaProductos = ({ items, tipo }) => (
                         <td style={cellStyle}>{producto.denominacion}</td>
                         <td style={cellStyle}>{cantidad}</td>
                         <td style={cellStyle}>
-                            ${producto.precio.toLocaleString("es-AR")}
+                            ${tipo === "manufacturado" ? item.precioProducto.toLocaleString("es-AR") : item.precioInsumo}
                         </td>
                     </tr>
                 );
