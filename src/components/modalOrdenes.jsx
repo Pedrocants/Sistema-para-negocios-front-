@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Modal from 'react-modal';
 import { RadioGroup, RadioInput, RadioLabel, RadioOption } from './radioStyles';
 import styled from 'styled-components';
@@ -108,7 +108,8 @@ const Button = styled.button`
 `;
 
 const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel, userId, token }) => {
-
+  const [loading, setLoading] = useState(false);
+  const enviandoRef = useRef(false);
   const [ordenTipoForm, setOrdenTipoForm] = useState('caja');
   const [sumaTotal, setSumaTotal] = useState(0);
   const [sumaCostos, setSumaCostos] = useState(0);
@@ -278,6 +279,9 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
   }
   const enviarDatos = (event) => {
     event.preventDefault();
+    if (enviandoRef.current) {
+      return;
+    }
 
     const esCaja = ordenTipoForm === 'caja' || tipo == 'AGREGACION_DE_STOCK' || tipo == 'DEVOLUCION_O_ELIMINACION_DE_STOCK';
 
@@ -317,7 +321,6 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
         case 'nuevo':
           if (email == '' || direccion == '' || telefono == '' || provincia == '' || nombre == '' || apellido == '' || tipoCliente == null && optionClient != 'Elegir') {
             alert("Nuevo cliente no puede tener campos vacios.");
-            //console.log(optionClient);
             return;
           }
           break;
@@ -325,6 +328,8 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
           break;
       }
     }
+    enviandoRef.current = true;
+    setLoading(true);
 
     const fecha_entrega = esCaja
       ? convertirFechaConZonaHoraria(new Date())
@@ -389,6 +394,8 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
         toggleModal();
         openConfirmationModal();
         onLabel(null);
+        enviandoRef.current = false;
+        setLoading(false);
       }
     }
     cargarOrden(orden);
@@ -617,7 +624,7 @@ const ModalOrdenes = ({ isModalOpen, toggleModal, openConfirmationModal, onLabel
             )
           }
 
-          <Button type="submit">Enviar</Button>
+          <Button type="submit" disabled={loading}>{!loading ? 'Enviar' : 'Cargando...'}</Button>
           <Button type="button" onClick={toggleModal}>Cancelar</Button>
         </Form>
       </ModalContent>
