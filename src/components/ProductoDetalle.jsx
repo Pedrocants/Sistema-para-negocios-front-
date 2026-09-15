@@ -314,13 +314,26 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
       return;
     }
 
+    if (!radioProductos || radioProductos === "") {
+      alert("Debes seleccionar una opcion.");
+      return;
+    }
+
     let nuevaSuma;
     let nuevaSumaCostos = 0;
     switch (radioProductos) {
       case 'p':
+        if (!sumaTotalProductos || isNaN(sumaTotalProductos)) {
+          alert("Ingresar cantidad.");
+          return;
+        }
         nuevaSuma = sumaTotalProductos;
         break;
       case 'i':
+        if (!sumaTotalInsumos || isNaN(sumaTotalInsumos)) {
+          alert("Ingresar cantidad.");
+          return;
+        }
         nuevaSuma = sumaTotalInsumos;
         nuevaSumaCostos = costo;
         break;
@@ -333,10 +346,10 @@ export const ProductoDetalle = ({ cont, contOrdenesDetalle, productos, insumos, 
     onActualizarSumaTotal(nuevaSuma, nuevaSumaCostos);
 
     const ordenDetalle = {
-      'productos': (selectedItemProducto) ? { idProductoManufacturado: selectedItemProducto.idProductoManufacturado } : null,
-      'insumo': (selectedItemInsumo) ? { idInsumo: selectedItemInsumo.idInsumo } : null,
-      'precioInsumo': (selectedItemInsumo) ? selectedItemInsumo.precio : null,
-      'precioProducto': (selectedItemProducto) ? selectedItemProducto.precio : null,
+      'productos': selectedItemProducto && (radioProductos === 'p' || radioProductos === 'p&i') ? { idProductoManufacturado: selectedItemProducto.idProductoManufacturado } : null,
+      'insumo': selectedItemInsumo && (radioProductos === 'i' || radioProductos === 'p&i') ? { idInsumo: selectedItemInsumo.idInsumo } : null,
+      'precioInsumo': selectedItemInsumo && (radioProductos === 'i' || radioProductos === 'p&i') ? selectedItemInsumo.precio : null,
+      'precioProducto': selectedItemProducto && (radioProductos === 'p' || radioProductos === 'p&i') ? selectedItemProducto.precio : null,
       'descuentosPorProducto': descuentos,
       'observaciones': observaciones,
       'cantidadProducto': (selectedItemProducto && cantidadProducto) ? cantidadProducto : 0,
